@@ -7,6 +7,14 @@ const app = Fastify();
 app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
 
+app.setErrorHandler((error, _request, reply) => {
+  if (error.code === "P2002") {
+    return reply.status(409).send({ message: "Email already exists." });
+  }
+
+  return reply.send(error);
+});
+
 app.register(usersRoutes);
 
 app.get("/", async () => {
