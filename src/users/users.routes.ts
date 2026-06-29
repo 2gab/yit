@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { createUserController } from "./users.controller";
+import { createUserController } from "./users.controller.js";
 
 export async function usersRoutes(app: FastifyInstance) {
   app.post("/users", createUserController);

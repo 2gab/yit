@@ -1,5 +1,5 @@
 import Fastify from "fastify";
-import { usersRoutes } from "./users/users.routes";
+import { usersRoutes } from "./users/users.routes.js";
 
 const app = Fastify();
 

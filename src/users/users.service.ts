@@ -1,4 +1,4 @@
-import { CreateUserRequest } from "./users.types";
+import type { CreateUserRequest } from "./users.types.js";
 
 type CreateUserBody = CreateUserRequest["Body"];
 

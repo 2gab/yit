@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { CreateUserRequest } from "./users.types";
-import { createUserService } from "./users.service";
+import type { CreateUserRequest } from "./users.types.js";
+import { createUserService } from "./users.service.js";
 
 export async function createUserController(
   request: FastifyRequest<CreateUserRequest>,
