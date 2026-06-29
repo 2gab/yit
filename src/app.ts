@@ -1,10 +1,13 @@
 import Fastify from "fastify";
+import { usersRoutes } from "./users/users.routes";
 
 const app = Fastify();
 
+app.register(usersRoutes);
+
 app.get("/", async () => {
   return {
-    message: "Api"
+    message: "Api",
   };
 });
 
