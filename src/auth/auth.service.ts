@@ -5,6 +5,15 @@ import * as argon2 from "argon2";
 
 type LoginBody = z.infer<typeof loginSchema.body>;
 
+export async function getMeService(id: number) {
+  const user = await prisma.user.findUnique({
+    where: { id },
+    select: { id: true, email: true, name: true, createdAt: true },
+  });
+
+  return user;
+}
+
 export async function loginService(data: LoginBody) {
   const user = await prisma.user.findUnique({
     where: { email: data.email },

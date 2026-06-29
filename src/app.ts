@@ -13,6 +13,14 @@ app.register(fastifyJwt, {
   secret: process.env["JWT_SECRET"] ?? "dev-secret",
 });
 
+app.decorate("authenticate", async (request, reply) => {
+  try {
+    await request.jwtVerify();
+  } catch {
+    return reply.status(401).send({ message: "Unauthorized." });
+  }
+});
+
 app.setErrorHandler((error, _request, reply) => {
   if (error.code === "P2002") {
     return reply.status(409).send({ message: "Email already exists." });

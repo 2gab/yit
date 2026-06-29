@@ -1,9 +1,22 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { z } from "zod";
 import type { loginSchema } from "./auth.schema.js";
-import { loginService } from "./auth.service.js";
+import { loginService, getMeService } from "./auth.service.js";
 
 type LoginBody = z.infer<typeof loginSchema.body>;
+
+export async function getMeController(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  const user = await getMeService(request.user.id);
+
+  if (!user) {
+    return reply.status(404).send({ message: "User not found." });
+  }
+
+  return reply.send(user);
+}
 
 export async function loginController(
   request: FastifyRequest<{ Body: LoginBody }>,
