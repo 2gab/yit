@@ -1,4 +1,4 @@
-import { FastifyReply, FastifyRequest } from "fastify";
+import type { FastifyReply, FastifyRequest } from "fastify";
 import type { CreateUserRequest } from "./users.types.js";
 import { createUserService } from "./users.service.js";
 
