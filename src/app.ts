@@ -3,6 +3,7 @@ import { serializerCompiler, validatorCompiler } from "@fastify/type-provider-zo
 import fastifyJwt from "@fastify/jwt";
 import fastifyOauth2 from "@fastify/oauth2";
 import { authRoutes } from "./auth/auth.routes.js";
+import { playlistsRoutes } from "./playlists/playlists.routes.js";
 
 const app = Fastify();
 
@@ -45,6 +46,7 @@ app.setErrorHandler((error, _request, reply) => {
 });
 
 app.register(authRoutes);
+app.register(playlistsRoutes);
 
 app.get("/", async () => {
   return { message: "yit api" };

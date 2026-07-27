@@ -51,7 +51,10 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
-  User: 'User'
+  User: 'User',
+  Playlist: 'Playlist',
+  Track: 'Track',
+  Download: 'Download'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -79,6 +82,50 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const PlaylistScalarFieldEnum = {
+  id: 'id',
+  youtubeId: 'youtubeId',
+  title: 'title',
+  description: 'description',
+  thumbnail: 'thumbnail',
+  userId: 'userId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PlaylistScalarFieldEnum = (typeof PlaylistScalarFieldEnum)[keyof typeof PlaylistScalarFieldEnum]
+
+
+export const TrackScalarFieldEnum = {
+  id: 'id',
+  youtubeId: 'youtubeId',
+  title: 'title',
+  artist: 'artist',
+  duration: 'duration',
+  thumbnail: 'thumbnail',
+  position: 'position',
+  playlistId: 'playlistId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TrackScalarFieldEnum = (typeof TrackScalarFieldEnum)[keyof typeof TrackScalarFieldEnum]
+
+
+export const DownloadScalarFieldEnum = {
+  id: 'id',
+  status: 'status',
+  path: 'path',
+  format: 'format',
+  error: 'error',
+  trackId: 'trackId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DownloadScalarFieldEnum = (typeof DownloadScalarFieldEnum)[keyof typeof DownloadScalarFieldEnum]
 
 
 export const SortOrder = {

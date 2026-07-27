@@ -21,6 +21,56 @@ model User {
   accessToken  String?
   refreshToken String?
 
+  playlists Playlist[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Playlist {
+  id          Int     @id @default(autoincrement())
+  youtubeId   String
+  title       String
+  description String?
+  thumbnail   String?
+
+  userId Int
+  user   User    @relation(fields: [userId], references: [id])
+  tracks Track[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([youtubeId, userId])
+}
+
+model Track {
+  id        Int     @id @default(autoincrement())
+  youtubeId String  @unique
+  title     String
+  artist    String?
+  duration  Int?
+  thumbnail String?
+  position  Int
+
+  playlistId Int
+  playlist   Playlist  @relation(fields: [playlistId], references: [id])
+  download   Download?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Download {
+  id      Int     @id @default(autoincrement())
+  status  String  @default("pending")
+  path    String?
+  format  String?
+  error   String?
+
+  trackId Int   @unique
+  track   Track @relation(fields: [trackId], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
