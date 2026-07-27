@@ -6,6 +6,7 @@ import { authRoutes } from "./auth/auth.routes.js";
 import { playlistsRoutes } from "./playlists/playlists.routes.js";
 import { fetchRoutes } from "./fetch/fetch.routes.js";
 import { pullRoutes } from "./pull/pull.routes.js";
+import { statusRoutes } from "./status/status.routes.js";
 
 const app = Fastify();
 
@@ -51,6 +52,7 @@ app.register(authRoutes);
 app.register(playlistsRoutes);
 app.register(fetchRoutes);
 app.register(pullRoutes);
+app.register(statusRoutes);
 
 app.get("/", async () => {
   return { message: "yit api" };
