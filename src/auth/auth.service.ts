@@ -1,33 +1,38 @@
-import type { z } from "zod";
-import type { loginSchema } from "./auth.schema.js";
 import { prisma } from "../lib/prisma.js";
-import * as argon2 from "argon2";
-
-type LoginBody = z.infer<typeof loginSchema.body>;
 
 export async function getMeService(id: number) {
-  const user = await prisma.user.findUnique({
+  return prisma.user.findUnique({
     where: { id },
     select: { id: true, email: true, name: true, createdAt: true },
   });
-
-  return user;
 }
 
-export async function loginService(data: LoginBody) {
-  const user = await prisma.user.findUnique({
-    where: { email: data.email },
+type GoogleProfile = {
+  sub: string;
+  email: string;
+  name: string;
+};
+
+type GoogleTokens = {
+  access_token: string;
+  refresh_token?: string;
+};
+
+export async function googleAuthService(profile: GoogleProfile, tokens: GoogleTokens) {
+  const user = await prisma.user.upsert({
+    where: { googleId: profile.sub },
+    update: {
+      accessToken: tokens.access_token,
+      refreshToken: tokens.refresh_token ?? null,
+    },
+    create: {
+      email: profile.email,
+      name: profile.name,
+      googleId: profile.sub,
+      accessToken: tokens.access_token,
+      refreshToken: tokens.refresh_token ?? null,
+    },
   });
 
-  if (!user) {
-    return null;
-  }
-
-  const validPassword = await argon2.verify(user.password, data.password);
-
-  if (!validPassword) {
-    return null;
-  }
-
-  return { id: user.id, email: user.email, name: user.name };
+  return { id: user.id, email: user.email };
 }

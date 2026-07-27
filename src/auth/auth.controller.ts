@@ -1,9 +1,5 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import type { z } from "zod";
-import type { loginSchema } from "./auth.schema.js";
-import { loginService, getMeService } from "./auth.service.js";
-
-type LoginBody = z.infer<typeof loginSchema.body>;
+import { getMeService, googleAuthService } from "./auth.service.js";
 
 export async function getMeController(
   request: FastifyRequest,
@@ -18,17 +14,24 @@ export async function getMeController(
   return reply.send(user);
 }
 
-export async function loginController(
-  request: FastifyRequest<{ Body: LoginBody }>,
+export async function googleCallbackController(
+  request: FastifyRequest,
   reply: FastifyReply
 ) {
-  const user = await loginService(request.body);
+  const { token } = await request.server.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(request);
 
-  if (!user) {
-    return reply.status(401).send({ message: "Invalid email or password." });
-  }
+  const profileResponse = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+    headers: { Authorization: `Bearer ${token.access_token}` },
+  });
 
-  const token = await reply.jwtSign({ id: user.id, email: user.email });
+  const profile = await profileResponse.json() as { sub: string; email: string; name: string };
 
-  return reply.send({ token });
+  const user = await googleAuthService(profile, {
+    access_token: token.access_token,
+    refresh_token: token.refresh_token ?? undefined,
+  });
+
+  const jwt = await reply.jwtSign({ id: user.id, email: user.email });
+
+  return reply.send({ token: jwt });
 }
