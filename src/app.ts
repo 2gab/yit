@@ -4,6 +4,7 @@ import fastifyJwt from "@fastify/jwt";
 import fastifyOauth2 from "@fastify/oauth2";
 import { authRoutes } from "./auth/auth.routes.js";
 import { playlistsRoutes } from "./playlists/playlists.routes.js";
+import { fetchRoutes } from "./fetch/fetch.routes.js";
 
 const app = Fastify();
 
@@ -47,6 +48,7 @@ app.setErrorHandler((error, _request, reply) => {
 
 app.register(authRoutes);
 app.register(playlistsRoutes);
+app.register(fetchRoutes);
 
 app.get("/", async () => {
   return { message: "yit api" };
