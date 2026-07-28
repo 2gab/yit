@@ -1,51 +1,10 @@
-# Dependencies
-node_modules/
+/target/
 
 # Environment
 .env
 .env.*
 !.env.example
 
-# Build
-dist/
-build/
-cli/target/
-
-# Logs
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-pnpm-debug.log*
-
-# Coverage
-coverage/
-.nyc_output/
-
-# TypeScript
-*.tsbuildinfo
-
-# Prisma
-prisma/dev.db
-prisma/dev.db-journal
-dev.db
-
-# IDE
-.vscode/
-.idea/
-
 # OS
 .DS_Store
 Thumbs.db
-
-# Caches
-.cache/
-.parcel-cache/
-.vite/
-.npm/
-.eslintcache
-.stylelintcache
-
-README.md
-TRACK.md
-TODO.md
