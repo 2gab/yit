@@ -60,7 +60,9 @@ async fn main() -> anyhow::Result<()> {
         Command::Pull => {
             commands::pull::run(&pool, &cfg).await?;
         }
-        Command::Status => println!("status: not implemented yet"),
+        Command::Status => {
+            commands::status::run(&pool).await?;
+        }
     }
 
     pool.close().await;
