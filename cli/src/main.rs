@@ -1,3 +1,4 @@
+mod auth;
 mod config;
 mod db;
 
@@ -35,15 +36,17 @@ async fn main() -> anyhow::Result<()> {
 
     fs::create_dir_all(&data_dir)?;
 
+    let cfg = config::load()?;
+
     let db_path = format!("sqlite:{}", data_dir.join("yit.db").display());
     let pool = db::connect(&db_path).await?;
-
-    let cfg = config::load()?;
 
     let cli = Cli::parse();
 
     match cli.command {
-        Command::Login => println!("login: not implemented yet"),
+        Command::Login => {
+            auth::login(&cfg.google).await?;
+        }
         Command::Add { url } => println!("add: {url}"),
         Command::Ls => println!("ls: not implemented yet"),
         Command::Fetch => println!("fetch: not implemented yet"),
@@ -51,7 +54,6 @@ async fn main() -> anyhow::Result<()> {
         Command::Status => println!("status: not implemented yet"),
     }
 
-    let _ = cfg;
     pool.close().await;
     Ok(())
 }
