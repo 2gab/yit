@@ -54,7 +54,9 @@ async fn main() -> anyhow::Result<()> {
         Command::Ls => {
             commands::playlist::ls(&pool).await?;
         }
-        Command::Fetch => println!("fetch: not implemented yet"),
+        Command::Fetch => {
+            commands::fetch::run(&pool).await?;
+        }
         Command::Pull => println!("pull: not implemented yet"),
         Command::Status => println!("status: not implemented yet"),
     }

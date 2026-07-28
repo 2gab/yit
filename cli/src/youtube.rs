@@ -1,6 +1,73 @@
 use anyhow::{Context, Result};
 use serde::Deserialize;
 
+// ── Playlist items (tracks) ──────────────────────────────────────────────────
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PlaylistItemSnippet {
+    pub title: String,
+    pub position: u32,
+    pub thumbnails: Option<Thumbnails>,
+    pub resource_id: ResourceId,
+    pub video_owner_channel_title: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ResourceId {
+    pub video_id: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PlaylistItemEntry {
+    pub snippet: PlaylistItemSnippet,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct PlaylistItemsResponse {
+    items: Option<Vec<PlaylistItemEntry>>,
+    next_page_token: Option<String>,
+}
+
+pub async fn fetch_playlist_items(
+    playlist_id: &str,
+    access_token: &str,
+) -> Result<Vec<PlaylistItemEntry>> {
+    let client = reqwest::Client::new();
+    let mut all_items = Vec::new();
+    let mut page_token: Option<String> = None;
+
+    loop {
+        let mut req = client
+            .get("https://www.googleapis.com/youtube/v3/playlistItems")
+            .query(&[
+                ("part", "snippet"),
+                ("playlistId", playlist_id),
+                ("maxResults", "50"),
+            ])
+            .bearer_auth(access_token);
+
+        if let Some(token) = &page_token {
+            req = req.query(&[("pageToken", token.as_str())]);
+        }
+
+        let res: PlaylistItemsResponse = req.send().await?.json().await?;
+
+        if let Some(items) = res.items {
+            all_items.extend(items);
+        }
+
+        match res.next_page_token {
+            Some(token) => page_token = Some(token),
+            None => break,
+        }
+    }
+
+    Ok(all_items)
+}
+
 #[derive(Debug, Deserialize)]
 pub struct PlaylistSnippet {
     pub title: String,
