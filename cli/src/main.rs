@@ -1,3 +1,4 @@
+mod config;
 mod db;
 
 use clap::{Parser, Subcommand};
@@ -37,6 +38,8 @@ async fn main() -> anyhow::Result<()> {
     let db_path = format!("sqlite:{}", data_dir.join("yit.db").display());
     let pool = db::connect(&db_path).await?;
 
+    let cfg = config::load()?;
+
     let cli = Cli::parse();
 
     match cli.command {
@@ -48,6 +51,7 @@ async fn main() -> anyhow::Result<()> {
         Command::Status => println!("status: not implemented yet"),
     }
 
+    let _ = cfg;
     pool.close().await;
     Ok(())
 }
