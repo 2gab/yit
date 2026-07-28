@@ -57,7 +57,9 @@ async fn main() -> anyhow::Result<()> {
         Command::Fetch => {
             commands::fetch::run(&pool).await?;
         }
-        Command::Pull => println!("pull: not implemented yet"),
+        Command::Pull => {
+            commands::pull::run(&pool, &cfg).await?;
+        }
         Command::Status => println!("status: not implemented yet"),
     }
 
