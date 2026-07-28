@@ -1,6 +1,8 @@
 mod auth;
+mod commands;
 mod config;
 mod db;
+mod youtube;
 
 use clap::{Parser, Subcommand};
 use std::fs;
@@ -37,7 +39,6 @@ async fn main() -> anyhow::Result<()> {
     fs::create_dir_all(&data_dir)?;
 
     let cfg = config::load()?;
-
     let db_path = format!("sqlite:{}", data_dir.join("yit.db").display());
     let pool = db::connect(&db_path).await?;
 
@@ -47,8 +48,12 @@ async fn main() -> anyhow::Result<()> {
         Command::Login => {
             auth::login(&cfg.google).await?;
         }
-        Command::Add { url } => println!("add: {url}"),
-        Command::Ls => println!("ls: not implemented yet"),
+        Command::Add { url } => {
+            commands::playlist::add(&pool, &url).await?;
+        }
+        Command::Ls => {
+            commands::playlist::ls(&pool).await?;
+        }
         Command::Fetch => println!("fetch: not implemented yet"),
         Command::Pull => println!("pull: not implemented yet"),
         Command::Status => println!("status: not implemented yet"),

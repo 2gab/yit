@@ -2606,6 +2606,7 @@ dependencies = [
  "sqlx",
  "tokio",
  "toml",
+ "url",
  "urlencoding",
 ]
 
