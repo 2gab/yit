@@ -5,8 +5,8 @@ use crate::{db, playlist, youtube};
 pub async fn run(url: &str) -> Result<()> {
     let dir = std::env::current_dir()?;
 
-    if dir.join(db::DB_FILENAME).exists() {
-        anyhow::bail!("Already a yit playlist ({} exists).", db::DB_FILENAME);
+    if db::db_path(&dir).exists() {
+        anyhow::bail!("Already a yit playlist ({}/{} exists).", db::DB_DIR, db::DB_FILENAME);
     }
 
     let playlist_id =

@@ -2,9 +2,9 @@
 
 git for YouTube.
 
-Each playlist lives in its own directory, tracked by a local `yithub.db` —
-no login, no global state. Copy the folder, `tar` it, put it in its own git
-repo, whatever: it's portable.
+Each playlist lives in its own directory, tracked by a local `.yit/yithub.db`
+— no login, no global state. Copy the folder, `tar` it, put it in its own
+git repo, whatever: it's portable.
 
 ## install
 
@@ -30,7 +30,7 @@ yit init <url>    turn the current directory into a tracked playlist
 yit status        show diff between local and remote playlist state
 yit sync          fetch remote changes and download new tracks
 yit pull          alias for sync
-yit untrack       stop tracking (removes yithub.db, keeps downloaded files)
+yit untrack       stop tracking (removes .yit/, keeps downloaded files)
 ```
 
 ## workflow
