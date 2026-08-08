@@ -1,11 +1,60 @@
 use anyhow::{Context, Result};
 use sqlx::SqlitePool;
+use std::collections::HashSet;
 use std::io::Write;
 use std::path::Path;
 use std::process::Command;
 
 use crate::config::AppConfig;
 use crate::youtube::{self, PlaylistInfo};
+
+pub struct DiffEntry {
+    pub youtube_id: String,
+    pub title: String,
+    pub position: i64,
+}
+
+pub struct TrackDiff {
+    pub new: Vec<DiffEntry>,
+    pub removed: Vec<DiffEntry>,
+}
+
+/// Compares the local `tracks` table against a freshly fetched remote
+/// playlist. Read-only: does not touch the database or the filesystem.
+pub async fn diff_remote(pool: &SqlitePool, info: &PlaylistInfo) -> Result<TrackDiff> {
+    let local: Vec<(String, String, i64)> =
+        sqlx::query_as("SELECT youtube_id, title, position FROM tracks")
+            .fetch_all(pool)
+            .await?;
+    let local_ids: HashSet<&str> = local.iter().map(|(id, _, _)| id.as_str()).collect();
+
+    let mut remote_ids: HashSet<String> = HashSet::new();
+    let mut new = Vec::new();
+
+    for (position, entry) in info.entries.iter().enumerate() {
+        if entry.title == "[Deleted video]" || entry.title == "[Private video]" {
+            continue;
+        }
+
+        remote_ids.insert(entry.id.clone());
+
+        if !local_ids.contains(entry.id.as_str()) {
+            new.push(DiffEntry {
+                youtube_id: entry.id.clone(),
+                title: entry.title.clone(),
+                position: position as i64,
+            });
+        }
+    }
+
+    let removed = local
+        .into_iter()
+        .filter(|(id, _, _)| !remote_ids.contains(id))
+        .map(|(youtube_id, title, position)| DiffEntry { youtube_id, title, position })
+        .collect();
+
+    Ok(TrackDiff { new, removed })
+}
 
 pub async fn track_remote(
     pool: &SqlitePool,

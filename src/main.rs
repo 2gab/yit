@@ -19,8 +19,10 @@ enum Command {
     Clone { url: String },
     /// Turn the current directory into a tracked playlist
     Init { url: String },
-    /// Show diff between local and remote playlist state
+    /// Show a summary of local vs remote playlist state
     Status,
+    /// Show detailed changes between local and remote playlist state
+    Diff,
     /// Fetch remote changes and download new tracks
     Sync,
     /// Alias for `sync`
@@ -38,6 +40,7 @@ async fn main() -> anyhow::Result<()> {
         Command::Clone { url } => commands::clone::run(&url, &cfg).await?,
         Command::Init { url } => commands::init::run(&url).await?,
         Command::Status => commands::status::run().await?,
+        Command::Diff => commands::diff::run().await?,
         Command::Sync | Command::Pull => commands::sync::run(&cfg).await?,
         Command::Untrack => commands::untrack::run()?,
     }

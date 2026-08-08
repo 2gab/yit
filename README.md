@@ -27,7 +27,8 @@ format = "opus"
 ```
 yit clone <url>   clone a remote playlist into a new directory
 yit init <url>    turn the current directory into a tracked playlist
-yit status        show diff between local and remote playlist state
+yit status        show a summary of local vs remote playlist state
+yit diff          show detailed changes between local and remote playlist state
 yit sync          fetch remote changes and download new tracks
 yit pull          alias for sync
 yit untrack       stop tracking (removes .yit/, keeps downloaded files)

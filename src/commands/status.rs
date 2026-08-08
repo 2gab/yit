@@ -1,7 +1,6 @@
 use anyhow::Result;
-use std::collections::HashSet;
 
-use crate::{db, youtube};
+use crate::{db, playlist, youtube};
 
 pub async fn run() -> Result<()> {
     let dir = std::env::current_dir()?;
@@ -18,44 +17,31 @@ pub async fn run() -> Result<()> {
     println!();
 
     let info = youtube::fetch_playlist(&youtube_id)?;
-
-    let local_ids: HashSet<String> = sqlx::query_scalar("SELECT youtube_id FROM tracks")
-        .fetch_all(&pool)
-        .await?
-        .into_iter()
-        .collect();
-
-    let remote_entries: Vec<_> = info
-        .entries
-        .iter()
-        .filter(|e| e.title != "[Deleted video]" && e.title != "[Private video]")
-        .collect();
-    let remote_ids: HashSet<&str> = remote_entries.iter().map(|e| e.id.as_str()).collect();
-
-    let new_count = remote_entries
-        .iter()
-        .filter(|e| !local_ids.contains(&e.id))
-        .count();
-    let removed_count = local_ids.iter().filter(|id| !remote_ids.contains(id.as_str())).count();
+    let diff = playlist::diff_remote(&pool, &info).await?;
 
     let local_done: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM tracks WHERE status = 'done'")
         .fetch_one(&pool)
         .await?;
+    let remote_total = info
+        .entries
+        .iter()
+        .filter(|e| e.title != "[Deleted video]" && e.title != "[Private video]")
+        .count();
 
     println!("Tracks");
     println!("  {local_done} local");
-    println!("  {} remote", remote_entries.len());
+    println!("  {remote_total} remote");
     println!();
     println!("Changes:");
     println!();
-    println!("  + {new_count} new");
-    println!("  - {removed_count} removed");
+    println!("  + {} new", diff.new.len());
+    println!("  - {} removed", diff.removed.len());
     println!();
 
-    if new_count > 0 || removed_count > 0 {
-        println!("Use 'yit sync' to update.");
-    } else {
+    if diff.new.is_empty() && diff.removed.is_empty() {
         println!("Up to date.");
+    } else {
+        println!("Use 'yit diff' to see details, 'yit sync' to update.");
     }
 
     Ok(())
