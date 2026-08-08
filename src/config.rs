@@ -5,20 +5,7 @@ use std::path::{Path, PathBuf};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AppConfig {
-    pub download_path: String,
     pub format: String,
-}
-
-impl AppConfig {
-    pub fn download_path_expanded(&self) -> PathBuf {
-        if self.download_path.starts_with("~/") {
-            dirs::home_dir()
-                .unwrap()
-                .join(&self.download_path[2..])
-        } else {
-            PathBuf::from(&self.download_path)
-        }
-    }
 }
 
 pub fn config_path() -> PathBuf {
@@ -43,8 +30,7 @@ pub fn load() -> Result<AppConfig> {
 }
 
 fn create_default(path: &Path) -> Result<()> {
-    let default = r#"download_path = "~/Music/yit"
-format = "opus"
+    let default = r#"format = "opus"
 "#;
     fs::create_dir_all(path.parent().unwrap())?;
     fs::write(path, default)?;

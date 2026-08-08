@@ -1,10 +1,10 @@
 mod commands;
 mod config;
 mod db;
+mod playlist;
 mod youtube;
 
 use clap::{Parser, Subcommand};
-use std::fs;
 
 #[derive(Parser)]
 #[command(name = "yit", about = "git for YouTube", version)]
@@ -15,50 +15,32 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
-    /// Start tracking a playlist
-    Add { url: String },
-    /// List tracked playlists
-    Ls,
-    /// Sync tracks from YouTube
-    Fetch,
-    /// Download pending tracks
-    Pull,
-    /// Show library status
+    /// Clone a remote playlist into a new directory
+    Clone { url: String },
+    /// Turn the current directory into a tracked playlist
+    Init { url: String },
+    /// Show diff between local and remote playlist state
     Status,
+    /// Fetch remote changes and download new tracks
+    Sync,
+    /// Alias for `sync`
+    Pull,
+    /// Remove yit tracking from the current directory
+    Untrack,
 }
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let data_dir = dirs::data_dir()
-        .expect("could not find data directory")
-        .join("yit");
-
-    fs::create_dir_all(&data_dir)?;
-
     let cfg = config::load()?;
-    let db_path = format!("sqlite:{}", data_dir.join("yithub.db").display());
-    let pool = db::connect(&db_path).await?;
-
     let cli = Cli::parse();
 
     match cli.command {
-        Command::Add { url } => {
-            commands::playlist::add(&pool, &url).await?;
-        }
-        Command::Ls => {
-            commands::playlist::ls(&pool).await?;
-        }
-        Command::Fetch => {
-            commands::fetch::run(&pool).await?;
-        }
-        Command::Pull => {
-            commands::pull::run(&pool, &cfg).await?;
-        }
-        Command::Status => {
-            commands::status::run(&pool).await?;
-        }
+        Command::Clone { url } => commands::clone::run(&url, &cfg).await?,
+        Command::Init { url } => commands::init::run(&url).await?,
+        Command::Status => commands::status::run().await?,
+        Command::Sync | Command::Pull => commands::sync::run(&cfg).await?,
+        Command::Untrack => commands::untrack::run()?,
     }
 
-    pool.close().await;
     Ok(())
 }
