@@ -36,7 +36,7 @@ async fn main() -> anyhow::Result<()> {
     fs::create_dir_all(&data_dir)?;
 
     let cfg = config::load()?;
-    let db_path = format!("sqlite:{}", data_dir.join("yit.db").display());
+    let db_path = format!("sqlite:{}", data_dir.join("yithub.db").display());
     let pool = db::connect(&db_path).await?;
 
     let cli = Cli::parse();
