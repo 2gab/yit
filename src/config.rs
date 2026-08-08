@@ -4,16 +4,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct GoogleConfig {
-    pub client_id: String,
-    pub client_secret: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 pub struct AppConfig {
     pub download_path: String,
     pub format: String,
-    pub google: GoogleConfig,
 }
 
 impl AppConfig {
@@ -40,10 +33,6 @@ pub fn load() -> Result<AppConfig> {
 
     if !path.exists() {
         create_default(&path)?;
-        anyhow::bail!(
-            "Config file created at {}.\nPlease fill in your Google credentials before continuing.",
-            path.display()
-        );
     }
 
     let content = fs::read_to_string(&path)?;
@@ -56,10 +45,6 @@ pub fn load() -> Result<AppConfig> {
 fn create_default(path: &Path) -> Result<()> {
     let default = r#"download_path = "~/Music/yit"
 format = "opus"
-
-[google]
-client_id = ""
-client_secret = ""
 "#;
     fs::create_dir_all(path.parent().unwrap())?;
     fs::write(path, default)?;

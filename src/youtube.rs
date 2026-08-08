@@ -1,84 +1,6 @@
 use anyhow::{Context, Result};
 use serde::Deserialize;
-
-// ── Playlist items (tracks) ──────────────────────────────────────────────────
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct PlaylistItemSnippet {
-    pub title: String,
-    pub position: u32,
-    pub thumbnails: Option<Thumbnails>,
-    pub resource_id: ResourceId,
-    pub video_owner_channel_title: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ResourceId {
-    pub video_id: String,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct PlaylistItemEntry {
-    pub snippet: PlaylistItemSnippet,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct PlaylistItemsResponse {
-    items: Option<Vec<PlaylistItemEntry>>,
-    next_page_token: Option<String>,
-}
-
-pub async fn fetch_playlist_items(
-    playlist_id: &str,
-    access_token: &str,
-) -> Result<Vec<PlaylistItemEntry>> {
-    let client = reqwest::Client::new();
-    let mut all_items = Vec::new();
-    let mut page_token: Option<String> = None;
-
-    loop {
-        let mut req = client
-            .get("https://www.googleapis.com/youtube/v3/playlistItems")
-            .query(&[
-                ("part", "snippet"),
-                ("playlistId", playlist_id),
-                ("maxResults", "50"),
-            ])
-            .bearer_auth(access_token);
-
-        if let Some(token) = &page_token {
-            req = req.query(&[("pageToken", token.as_str())]);
-        }
-
-        let res: PlaylistItemsResponse = req.send().await?.json().await?;
-
-        if let Some(items) = res.items {
-            all_items.extend(items);
-        }
-
-        match res.next_page_token {
-            Some(token) => page_token = Some(token),
-            None => break,
-        }
-    }
-
-    Ok(all_items)
-}
-
-#[derive(Debug, Deserialize)]
-pub struct PlaylistSnippet {
-    pub title: String,
-    pub description: String,
-    pub thumbnails: Thumbnails,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Thumbnails {
-    pub default: Option<Thumbnail>,
-}
+use std::process::Command;
 
 #[derive(Debug, Deserialize)]
 pub struct Thumbnail {
@@ -86,32 +8,47 @@ pub struct Thumbnail {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct PlaylistItem {
+pub struct PlaylistEntry {
     pub id: String,
-    pub snippet: PlaylistSnippet,
+    pub title: String,
+    #[serde(default)]
+    pub uploader: Option<String>,
+    #[serde(default)]
+    pub thumbnails: Option<Vec<Thumbnail>>,
 }
 
 #[derive(Debug, Deserialize)]
-struct PlaylistResponse {
-    items: Option<Vec<PlaylistItem>>,
+pub struct PlaylistInfo {
+    pub id: String,
+    pub title: String,
+    #[serde(default)]
+    pub thumbnails: Option<Vec<Thumbnail>>,
+    #[serde(default)]
+    pub entries: Vec<PlaylistEntry>,
 }
 
-pub async fn fetch_playlist(playlist_id: &str, access_token: &str) -> Result<PlaylistItem> {
-    let client = reqwest::Client::new();
+pub fn thumbnail_url(thumbnails: &Option<Vec<Thumbnail>>) -> Option<String> {
+    thumbnails.as_ref().and_then(|t| t.last()).map(|t| t.url.clone())
+}
 
-    let response: PlaylistResponse = client
-        .get("https://www.googleapis.com/youtube/v3/playlists")
-        .query(&[("part", "snippet"), ("id", playlist_id)])
-        .bearer_auth(access_token)
-        .send()
-        .await?
-        .json()
-        .await?;
+pub fn fetch_playlist(playlist_id: &str) -> Result<PlaylistInfo> {
+    let url = format!("https://www.youtube.com/playlist?list={playlist_id}");
 
-    response
-        .items
-        .and_then(|mut items| if items.is_empty() { None } else { Some(items.remove(0)) })
-        .with_context(|| format!("Playlist '{playlist_id}' not found on YouTube"))
+    let output = Command::new("yt-dlp")
+        .args(["-J", "--flat-playlist", "--no-warnings", &url])
+        .output()
+        .context("yt-dlp not found. Install it with: pip install yt-dlp")?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!(
+            "yt-dlp failed to fetch playlist '{playlist_id}': {}",
+            stderr.lines().last().unwrap_or("unknown error")
+        );
+    }
+
+    serde_json::from_slice(&output.stdout)
+        .with_context(|| format!("Failed to parse yt-dlp output for playlist '{playlist_id}'"))
 }
 
 pub fn extract_playlist_id(input: &str) -> Option<String> {

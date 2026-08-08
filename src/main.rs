@@ -1,4 +1,3 @@
-mod auth;
 mod commands;
 mod config;
 mod db;
@@ -16,8 +15,6 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
-    /// Authenticate with Google
-    Login,
     /// Start tracking a playlist
     Add { url: String },
     /// List tracked playlists
@@ -45,9 +42,6 @@ async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Command::Login => {
-            auth::login(&cfg.google).await?;
-        }
         Command::Add { url } => {
             commands::playlist::add(&pool, &url).await?;
         }

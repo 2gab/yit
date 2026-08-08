@@ -1,24 +1,11 @@
-CREATE TABLE IF NOT EXISTS users (
-    id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    email        TEXT NOT NULL UNIQUE,
-    name         TEXT,
-    google_id    TEXT UNIQUE,
-    access_token  TEXT,
-    refresh_token TEXT,
-    created_at   TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
 CREATE TABLE IF NOT EXISTS playlists (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    youtube_id  TEXT NOT NULL,
+    youtube_id  TEXT NOT NULL UNIQUE,
     title       TEXT NOT NULL,
     description TEXT,
     thumbnail   TEXT,
-    user_id     INTEGER NOT NULL REFERENCES users(id),
     created_at  TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at  TEXT NOT NULL DEFAULT (datetime('now')),
-    UNIQUE(youtube_id, user_id)
+    updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS tracks (
