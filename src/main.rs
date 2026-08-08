@@ -2,6 +2,7 @@ mod commands;
 mod config;
 mod db;
 mod playlist;
+mod web;
 mod youtube;
 
 use clap::{Parser, Subcommand};
@@ -29,6 +30,11 @@ enum Command {
     Pull,
     /// Remove yit tracking from the current directory
     Untrack,
+    /// Serve the current playlist over HTTP on the local network
+    Serve {
+        #[arg(short, long, default_value_t = 8080)]
+        port: u16,
+    },
 }
 
 #[tokio::main]
@@ -43,6 +49,7 @@ async fn main() -> anyhow::Result<()> {
         Command::Diff => commands::diff::run().await?,
         Command::Sync | Command::Pull => commands::sync::run(&cfg).await?,
         Command::Untrack => commands::untrack::run()?,
+        Command::Serve { port } => commands::serve::run(port).await?,
     }
 
     Ok(())

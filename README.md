@@ -32,6 +32,7 @@ yit diff          show detailed changes between local and remote playlist state
 yit sync          fetch remote changes and download new tracks
 yit pull          alias for sync
 yit untrack       stop tracking (removes .yit/, keeps downloaded files)
+yit serve         serve the playlist over HTTP on your local network
 ```
 
 ## workflow
@@ -50,3 +51,19 @@ mkdir my-playlist && cd my-playlist
 yit init "https://youtube.com/playlist?list=PLxxxxxxx"
 yit sync
 ```
+
+## serving a playlist
+
+```bash
+yit serve --port 8080
+```
+
+prints a LAN URL (`http://192.168.x.x:8080`) that any device on the same
+network can open to browse and play the tracks. It binds locally with no
+authentication — treat it as trusted-network-only for now; public exposure
+is a deliberate, separate step, not a default.
+
+`yit` does not host, catalog, or distribute media itself — it only serves
+files that already exist on your machine, to whoever you choose to give
+that address to. You're responsible for what you download and make
+available through your own `yit serve`.
